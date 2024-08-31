@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+        }
+
+        .sidebar {
+            width: 150px;
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            height: 100vh;
+            position: fixed;
+            box-sizing: border-box;
+        }
+
+        .sidebar h2 {
+            text-align: left;
+            font-size: 16px;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 10px 0;
+            text-align: left;
+        }
+
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+        }
+
+        .main-content {
+            margin-left: 150px;
+            padding: 0 10px;
+            flex-grow: 1;
+            width: calc(100% - 150px);
+            box-sizing: border-box;
+            transition: margin-right 0.3s;
+        }
+
+        .filters-nav {
+            background-color: #333;
+            color: white;
+            padding: 5px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 5px;
+        }
+
+        .topnav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .topnav label {
+            margin-right: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .topnav select {
+            padding: 4px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f4f4f9;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+
+        .topnav select:focus {
+            outline: none;
+            background-color: #e0e0e0;
+        }
+
+        .tabs-container {
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #ccc;
+            padding: 2px 0;
+            margin-top: 5px;
+            justify-content: flex-start;
+            margin-bottom: 2px;
+        }
+
+        .tabs {
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .tabs button {
+            background-color: #f4f4f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            margin: 0 5px;
+            position: relative;
+        }
+
+        .tabs button:hover {
+            background-color: #ddd;
+        }
+
+        .tabs button.active {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .tabs .add-tab {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .tabs .add-tab:hover {
+            background-color: #0056b3;
+        }
+
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .chart-container .chart-wrapper {
+            width: calc(50% - 5px);
+            margin-bottom: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 15px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .chart-container .chart-wrapper canvas {
+            width: 100%;
+            height: 250px;
+            box-sizing: border-box;
+        }
+
+        .chart-container .chart-wrapper .chart-label {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .chatbot {
+            width: 0;
+            background-color: #fff;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+            transition: width 0.3s;
+            padding: 0;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .chatbot.open {
+            width: 320px;
+            padding: 15px;
+        }
+
+        .chatbot h2 {
+            text-align: center;
+            font-size: 22px;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        #chatbot {
+            height: calc(100% - 100px);
+            overflow-y: auto;
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #chatbot-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        #chatbot-input {
+            display: flex;
+        }
+
+        #chatbot-input input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-right: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #chatbot-input button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+
+        #chatbot-input button:hover {
+            background-color: #0056b3;
+        }
+
+        .chatbot-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #007bff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .chatbot-toggle i {
+            color: white;
+            font-size: 28px;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-15px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .chatbot-message {
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+            max-width: 75%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .chatbot-message.user {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .chatbot-message.bot {
+            background-color: #f1f1f1;
+            color: black;
+            align-self: flex-start;
+        }
+
+        .dashboard-controls {
+            display: none;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .dashboard-controls button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .dashboard-controls button:hover {
+            background-color: #0056b3;
+        }
+
+        .dashboard-controls button:focus {
+            outline: none;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .context-menu {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            width: 150px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .context-menu a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .context-menu a:hover {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a id="menu-dashboards" href="#dashboards">Dashboards</a></li>
+            <li><a id="menu-accounting" href="#accounting">Accounting</a></li>
+            <li><a id="menu-finance" href="#finance">Finance</a></li>
+            <li><a id="menu-sales" href="#sales">Sales</a></li>
+            <li><a id="menu-crm" href="#crm">CRM</a></li>
+            <li><a id="menu-purchase" href="#purchase">Purchase</a></li>
+            <li><a id="menu-inventory" href="#inventory">Inventory</a></li>
+            <li><a id="menu-exports" href="#exports">Exports</a></li>
+            <li><a id="menu-helpdesk" href="#helpdesk">Helpdesk</a></li>
+            <li><a id="menu-others" href="#others">Others</a></li>
+            <li><a id="menu-settings" href="#settings">Settings</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <div id="dashboards" class="content-section active">
+            <div class="filters-nav">
+                <div class="topnav">
+                    <label for="time-period">Time Period:</label>
+                    <select id="time-period" onchange="fetchData()">
+                        <option value="last-7-days">Last 7 Days</option>
+                        <option value="last-30-days">Last 30 Days</option>
+                        <option value="last-90-days">Last 90 Days</option>
+                    </select>
+                    
+                    <label for="platform">E-commerce Platform:</label>
+                    <select id="platform" onchange="fetchData()">
+                        <option value="myntra">Myntra</option>
+                        <option value="meesho">Meesho</option>
+                        <option value="amazon">Amazon</option>
+                        <option value="flipkart">Flipkart</option>
+                        <option value="glowroad">Glowroad</option>
+                        <option value="ajio">Ajio</option>
+                    </select>
+                    
+                    <label for="dataset-type">File Type:</label>
+                    <select id="dataset-type" onchange="fetchData()">
+                        <option value="orders">Orders</option>
+                        <option value="returns">Returns</option>
+                        <option value="payments">Payments</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="dashboard-sheets">
+                <div class="chart-container" id="dashboard-0">
+                    <div class="chart-wrapper">
+                        <div class="chart-label">Order Life Cycle</div>
+                        <canvas id="orderLifeCycleChart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="chart-label">Payment Reconciliation</div>
+                        <canvas id="paymentReconciliationChart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="chart-label">Top Selling Products</div>
+                        <canvas id="topSellingProductsChart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="chart-label">Top Regions</div>
+                        <canvas id="topRegionsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs-container">
+                <div class="tabs" id="tabs">
+                    <button class="active" onclick="switchTab(0)" oncontextmenu="showContextMenu(event, 0)">Dashboard 1</button>
+                    <div class="add-tab" onclick="addNewTab()">+</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="accounting" class="content-section"></div>
+        <div id="finance" class="content-section"></div>
+        <div id="sales" class="content-section"></div>
+        <div id="crm" class="content-section"></div>
+        <div id="purchase" class="content-section"></div>
+        <div id="inventory" class="content-section"></div>
+        <div id="exports" class="content-section"></div>
+        <div id="helpdesk" class="content-section"></div>
+        <div id="others" class="content-section"></div>
+        <div id="settings" class="content-section"></div>
+    </div>
+
+    <div class="chatbot" id="chatbotSidebar">
+        <h2>Assistant Chatbot</h2>
+        <div id="chatbot">
+            <div id="chatbot-messages"></div>
+            <div id="chatbot-input">
+                <input type="text" id="chatbot-user-input" placeholder="Type your question...">
+                <button id="chatbot-send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chatbot-toggle" id="chatbotToggle">
+        <i class="fas fa-comments"></i>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <a href="#" onclick="renameSheet()">Rename Sheet</a>
+        <a href="#" onclick="deleteSheet()">Delete Sheet</a>
+        <a href="#" onclick="addChart()">Add Chart</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const assistantId = 'your-assistant-id'; // Replace with your actual assistantId
+            const projectApiKey = 'your-project-api-key'; // Replace with your actual projectApiKey
+
+            const ctx1 = document.getElementById('orderLifeCycleChart').getContext('2d');
+            const ctx2 = document.getElementById('paymentReconciliationChart').getContext('2d');
+            const ctx3 = document.getElementById('topSellingProductsChart').getContext('2d');
+            const ctx4 = document.getElementById('topRegionsChart').getContext('2d');
+
+            let orderLifeCycleChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Order Life Cycle',
+                        data: [120, 150, 180, 200, 170, 160, 190],
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            let paymentReconciliationChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Payment Reconciliation',
+                        data: [3200, 4500, 3700, 5000, 4200, 3900, 4100],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            let topSellingProductsChart = new Chart(ctx3, {
+                type: 'pie',
+                data: {
+                    labels: ['Product A', 'Product B', 'Product C', 'Product D', 'Product E'],
+                    datasets: [{
+                        label: 'Top Selling Products',
+                        data: [300, 250, 200, 150, 100],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            let topRegionsChart = new Chart(ctx4, {
+                type: 'doughnut',
+                data: {
+                    labels: ['North', 'South', 'East', 'West', 'Central'],
+                    datasets: [{
+                        label: 'Top Regions',
+                        data: [500, 400, 300, 200, 100],
+                        backgroundColor: [
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 99, 132, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            function initializeChatbot() {
+                console.log('Chatbot initialized with assistantId:', assistantId, 'and projectApiKey:', projectApiKey);
+            }
+
+            initializeChatbot();
+
+            const chatbotToggle = document.getElementById('chatbotToggle');
+            const chatbotSidebar = document.getElementById('chatbotSidebar');
+            const mainContent = document.getElementById('mainContent');
+
+            chatbotToggle.addEventListener('click', () => {
+                chatbotSidebar.classList.toggle('open');
+                resizeCharts();
+            });
+
+            function resizeCharts() {
+                const isChatbotOpen = chatbotSidebar.classList.contains('open');
+                const newWidth = isChatbotOpen ? 'calc(100% - 470px)' : 'calc(100% - 150px)';
+                mainContent.style.width = newWidth;
+                setTimeout(() => {
+                    orderLifeCycleChart.resize();
+                    paymentReconciliationChart.resize();
+                    topSellingProductsChart.resize();
+                    topRegionsChart.resize();
+                }, 300);
+            }
+
+            document.addEventListener('click', (event) => {
+                if (!chatbotSidebar.contains(event.target) && !chatbotToggle.contains(event.target)) {
+                    if (chatbotSidebar.classList.contains('open')) {
+                        chatbotSidebar.classList.remove('open');
+                        resizeCharts();
+                    }
+                }
+            });
+
+            const chatbotMessages = document.getElementById('chatbot-messages');
+            const chatbotInput = document.getElementById('chatbot-user-input');
+            const chatbotSendBtn = document.getElementById('chatbot-send-btn');
+
+            function addMessage(text, sender) {
+                const message = document.createElement('div');
+                message.classList.add('chatbot-message', sender);
+                message.textContent = text;
+                chatbotMessages.appendChild(message);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+
+            chatbotSendBtn.addEventListener('click', () => {
+                const userInput = chatbotInput.value.trim();
+                if (userInput) {
+                    addMessage(userInput, 'user');
+                    chatbotInput.value = '';
+
+                    setTimeout(() => {
+                        addMessage(`Bot response to: "${userInput}"`, 'bot');
+                    }, 1000);
+                }
+            });
+
+            chatbotInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    chatbotSendBtn.click();
+                }
+            });
+
+            const contextMenu = document.getElementById('contextMenu');
+            let currentTab = 0;
+
+            document.addEventListener('click', (event) => {
+                if (!contextMenu.contains(event.target)) {
+                    contextMenu.style.display = 'none';
+                }
+            });
+
+            function showContextMenu(event, tabIndex) {
+                event.preventDefault();
+                currentTab = tabIndex;
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${event.pageX}px`;
+                contextMenu.style.top = `${event.pageY}px`;
+            }
+
+            function addChart() {
+                console.log('Adding chart to tab:', currentTab);
+                const sheetId = `dashboard-${currentTab}`;
+                const chartId = `chart-${currentTab}-${document.querySelectorAll(`#${sheetId} .chart-wrapper`).length + 1}`;
+                const chartWrapper = document.createElement('div');
+                chartWrapper.className = 'chart-wrapper';
+                chartWrapper.innerHTML = `
+                    <div class="chart-label">New Chart</div>
+                    <canvas id="${chartId}"></canvas>
+                `;
+                document.getElementById(sheetId).appendChild(chartWrapper);
+                createChart(chartId);
+            }
+
+            function renameSheet() {
+                const newName = prompt("Enter new name for the sheet:");
+                if (newName) {
+                    document.querySelectorAll('.tabs button')[currentTab].textContent = newName;
+                }
+            }
+
+            function deleteSheet() {
+                if (confirm("Are you sure you want to delete this sheet?")) {
+                    document.querySelectorAll('.tabs button')[currentTab].remove();
+                    document.querySelector(`#dashboard-${currentTab}`).remove();
+                    switchTab(0);
+                }
+            }
+
+            function createNewTab(sheetIndex) {
+                console.log('Creating new tab:', sheetIndex);
+                const tabs = document.getElementById('tabs');
+                const newTab = document.createElement('button');
+                newTab.textContent = `Dashboard ${sheetIndex + 1}`;
+                newTab.onclick = () => switchTab(sheetIndex);
+                newTab.oncontextmenu = (event) => showContextMenu(event, sheetIndex);
+                tabs.insertBefore(newTab, tabs.querySelector('.add-tab'));
+
+                const dashboardSheets = document.getElementById('dashboard-sheets');
+                const newSheet = document.createElement('div');
+                newSheet.className = 'chart-container';
+                newSheet.id = `dashboard-${sheetIndex}`;
+                newSheet.style.display = 'none';
+                dashboardSheets.appendChild(newSheet);
+            }
+
+            function addNewTab() {
+                console.log('Adding new tab');
+                const newIndex = document.querySelectorAll('.tabs button').length - 1;
+                createNewTab(newIndex);
+                switchTab(newIndex);
+            }
+
+            function switchTab(sheetIndex) {
+                console.log('Switching to tab:', sheetIndex);
+                const tabs = document.querySelectorAll('.tabs button');
+                tabs.forEach(tab => tab.classList.remove('active'));
+                tabs[sheetIndex].classList.add('active');
+
+                const sheets = document.querySelectorAll('.chart-container');
+                sheets.forEach(sheet => sheet.style.display = 'none');
+                document.getElementById(`dashboard-${sheetIndex}`).style.display = 'flex';
+            }
+
+            function createChart(chartId) {
+                console.log('Creating chart with id:', chartId);
+                const ctx = document.getElementById(chartId).getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Label1', 'Label2', 'Label3'],
+                        datasets: [{
+                            label: `New Chart`,
+                            data: [10, 20, 30],
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            function fetchData() {
+                const timePeriod = document.getElementById('time-period').value;
+                const platform = document.getElementById('platform').value;
+                const datasetType = document.getElementById('dataset-type').value;
+
+                const apiUrl = `https://your-api-endpoint?timePeriod=${timePeriod}&platform=${platform}&datasetType=${datasetType}`;
+
+                axios.get(apiUrl)
+                    .then(response => {
+                        const data = response.data;
+
+                        // Hypothetical data for demonstration
+                        updateChart(orderLifeCycleChart, ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], [120, 150, 180, 200, 170, 160, 190]);
+                        updateChart(paymentReconciliationChart, ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], [3200, 4500, 3700, 5000, 4200, 3900, 4100]);
+                        updateChart(topSellingProductsChart, ['Product A', 'Product B', 'Product C', 'Product D', 'Product E'], [300, 250, 200, 150, 100]);
+                        updateChart(topRegionsChart, ['North', 'South', 'East', 'West', 'Central'], [500, 400, 300, 200, 100]);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                    });
+            }
+
+            function updateChart(chart, labels, data) {
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = data;
+                chart.update();
+            }
+
+            fetchData();
+
+            const sections = document.querySelectorAll('.content-section');
+            const menuItems = document.querySelectorAll('.sidebar ul li a');
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    sections.forEach(section => section.classList.remove('active'));
+                    const targetId = item.getAttribute('href').substring(1);
+                    document.getElementById(targetId).classList.add('active');
+                    if (targetId === 'dashboards') {
+                        document.querySelector('.dashboard-controls').style.display = 'flex';
+                    } else {
+                        document.querySelector('.dashboard-controls').style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
